@@ -1,17 +1,9 @@
-//
-//  ColorSliderView.m
-//  FontDemo
-//
-//  Created by wangzexin on 2024/6/26.
-//
-
 #import "ColorSliderView.h"
 
 @interface ColorSliderView ()
 
-///<##>
-@property (nonatomic, strong) UIImageView *gradientImageView;
-///<##>
+@property (nonatomic, strong) UIImageView *backgroundImageView;
+///icon
 @property (nonatomic, strong) UIImageView *iconImageView;
 
 @end
@@ -19,127 +11,83 @@
 @implementation ColorSliderView
 
 - (instancetype)initWithFrame:(CGRect)frame {
-    if (self = [super initWithFrame:frame]) {
-        [self setupSubview];
+    self = [super initWithFrame:frame];
+    if (self) {
+        // 初始化 UIImageView 并加载背景图片
+        _backgroundImageView = [[UIImageView alloc] initWithFrame:self.bounds];
+        _backgroundImageView.image = [UIImage imageNamed:@"gradientImage"];
+        _backgroundImageView.clipsToBounds = YES;
+        [self addSubview:_backgroundImageView];
+        
+        self.iconImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 5, 20, 20)];
+        self.iconImageView.image = [UIImage imageNamed:@"backgroundImageName.jpg"];
+        self.iconImageView.layer.cornerRadius = 10;
+        self.iconImageView.clipsToBounds = YES;
+        [self addSubview:self.iconImageView];
     }
     return self;
 }
 
-- (void)setupSubview {
-    self.gradientImageView = [[UIImageView alloc] init];
-    self.gradientImageView.image = [UIImage imageNamed:@"gradientImage"];
-    [self addSubview:self.gradientImageView];
-    
-    self.iconImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"backgroundImageName.jpg"]];
-    self.iconImageView.frame = CGRectMake(0, 5, 20, 20);
-    self.iconImageView.layer.cornerRadius = 10;
-    self.iconImageView.clipsToBounds = YES;
-    [self addSubview:self.iconImageView];
+// 触摸事件开始
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [self handleTouch:touches];
 }
 
-- (void)drawRect:(CGRect)rect {
-    [super drawRect:rect];
-    if (self.gradientImageView.image) {
-        [self.gradientImageView.image drawInRect:self.bounds];
+// 触摸事件移动
+- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [self handleTouch:touches];
+}
+
+// 触摸事件处理
+- (void)handleTouch:(NSSet<UITouch *> *)touches {
+    UITouch *touch = [touches anyObject];
+    CGPoint point = [touch locationInView:self];
+    self.iconImageView.frame = CGRectMake(point.x-10, 5, 20, 20);
+    UIColor *color = [self colorOfPoint:point inImageView:self.backgroundImageView];
+    if (color) {
+        if (self.touchedColor) {
+            self.touchedColor(color);
+        }
     }
 }
 
-- (void)layoutSubviews {
-    [super layoutSubviews];
-    self.gradientImageView.frame = self.bounds;
-}
-
-- (UIColor *)colorOfPoint:(CGPoint)point {
-    unsigned char pixel[4] = {0};
-    UIColor *color = nil;
-    // 创建1x1像素的位图上下文
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    CGContextRef context = CGBitmapContextCreate(pixel,
-                                                 1,
-                                                 1,
-                                                 8,
-                                                 4,
-                                                 colorSpace,
-                                                 kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
-    CGColorSpaceRelease(colorSpace);
-    if (context) {
-        // 将要检查的点的像素绘制到1x1的位图上下文中
-        CGContextTranslateCTM(context, -point.x, -point.y);
-        [self.layer renderInContext:context];
-        
-        // 获取颜色值
-        color = [UIColor colorWithRed:pixel[0] / 255.0
-                                green:pixel[1] / 255.0
-                                 blue:pixel[2] / 255.0
-                                alpha:pixel[3] / 255.0];
-        CGContextRelease(context);
-    }
-    return color;
-}
-
-- (UIColor *)colorOfPoint:(CGPoint)point inImage:(UIImage *)image {
-    // 确保点在视图范围内
-    if (!CGRectContainsPoint(self.bounds, point)) {
+// 获取指定点的颜色值
+- (UIColor *)colorOfPoint:(CGPoint)point inImageView:(UIImageView *)imageView {
+    UIImage *image = imageView.image;
+    if (!image) {
         return nil;
     }
-
-    // 计算视图坐标和图片坐标之间的比例
+    CGSize viewSize = imageView.bounds.size;
     CGSize imageSize = image.size;
-    CGSize viewSize = self.bounds.size;
-
-    CGFloat xRatio = imageSize.width / viewSize.width;
-    CGFloat yRatio = imageSize.height / viewSize.height;
-    NSLog(@"🏀🏀scale--%d", image.scale);
-    // 将视图坐标转换为图片坐标
-    CGPoint imagePoint = CGPointMake(point.x * xRatio, point.y * yRatio);
-
-    CGImageRef cgImage = [image CGImage];
+    CGPoint imagePoint = CGPointMake(point.x * (imageSize.width / viewSize.width),
+                                     point.y * (imageSize.height / viewSize.height));
+    if (imagePoint.x < 0 || imagePoint.x >= imageSize.width || imagePoint.y < 0 || imagePoint.y >= imageSize.height) {
+        return nil;
+    }
+    // 获取图片的 CGImage
+    CGImageRef cgImage = image.CGImage;
     NSUInteger width = CGImageGetWidth(cgImage);
     NSUInteger height = CGImageGetHeight(cgImage);
+    // 创建颜色空间
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    unsigned char *rawData = (unsigned char *)calloc(height * width * 4, sizeof(unsigned char));
-    NSUInteger bytesPerPixel = 4;
-    NSUInteger bytesPerRow = bytesPerPixel * width;
-    NSUInteger bitsPerComponent = 8;
-    CGContextRef context = CGBitmapContextCreate(rawData, width, height,
-                                                 bitsPerComponent, bytesPerRow, colorSpace,
-                                                 kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+    unsigned char pixelData[4] = { 0, 0, 0, 0 };
+
+    CGContextRef context = CGBitmapContextCreate(pixelData, 1, 1, 8, 4, colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
     CGColorSpaceRelease(colorSpace);
-    
+
+    // 绘制指定点的像素到位图上下文
+    CGContextSetBlendMode(context, kCGBlendModeCopy);
+    CGContextTranslateCTM(context, -imagePoint.x, -imagePoint.y);
     CGContextDrawImage(context, CGRectMake(0, 0, width, height), cgImage);
     CGContextRelease(context);
-    
-    int byteIndex = (bytesPerRow * imagePoint.y) + imagePoint.x * bytesPerPixel;
-    CGFloat red = rawData[byteIndex] / 255.0;
-    CGFloat green = rawData[byteIndex + 1] / 255.0;
-    CGFloat blue = rawData[byteIndex + 2] / 255.0;
-    CGFloat alpha = rawData[byteIndex + 3] / 255.0;
-    
-    free(rawData);
-    
+
+    CGFloat red   = pixelData[0] / 255.0;
+    CGFloat green = pixelData[1] / 255.0;
+    CGFloat blue  = pixelData[2] / 255.0;
+    CGFloat alpha = pixelData[3] / 255.0;
+
     return [UIColor colorWithRed:red green:green blue:blue alpha:alpha];
 }
 
-- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-    [super touchesBegan:touches withEvent:event];
-    CGPoint point = [[touches anyObject] locationInView:self.gradientImageView];
-    self.iconImageView.frame = CGRectMake(point.x-10, 5, 20, 20);
-//    UIColor *color = [self colorOfPoint:point];
-    UIColor *color = [self colorOfPoint:point inImage:[UIImage imageNamed:@"gradientImage"]];
-    if (self.touchedColor) {
-        self.touchedColor(color);
-    }
-}
-
-- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-    [super touchesMoved:touches withEvent:event];
-    CGPoint point = [[touches anyObject] locationInView:self];
-    self.iconImageView.frame = CGRectMake(point.x-10, 5, 20, 20);
-    UIColor *color = [self colorOfPoint:point];
-    if (self.touchedColor) {
-        self.touchedColor(color);
-    }
-}
-
-
 @end
+
