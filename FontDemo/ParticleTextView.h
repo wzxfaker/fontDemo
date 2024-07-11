@@ -7,5 +7,8 @@
 @property (nonatomic, strong) UIColor *particleColor;
 @property (nonatomic, assign) CGFloat particleSize;
 
+///<##>
+@property (nonatomic, strong) UIImage *image;
+
 @end
 

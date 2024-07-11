@@ -45,7 +45,10 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+//    self.view.backgroundColor = [UIColor blueColor];
+    
     ParticleTextView *particleTextView = [[ParticleTextView alloc] initWithFrame:CGRectMake(0, 100, self.view.frame.size.width, 300)];
+    particleTextView.image = [UIImage imageNamed:@"3"];
     particleTextView.text = @"你好";
     particleTextView.font = [UIFont systemFontOfSize:150 weight:UIFontWeightBold];
     particleTextView.particleColor = [UIColor redColor];

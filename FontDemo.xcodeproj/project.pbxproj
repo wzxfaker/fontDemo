@@ -22,6 +22,7 @@
 		305DDFA62C0D6DB700E1CA6F /* Komet Pro Heavy Italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 305DDFA52C0D6DB700E1CA6F /* Komet Pro Heavy Italic.otf */; };
 		305DDFF72C0DCFDE00E1CA6F /* TextStrokeMaskView.m in Sources */ = {isa = PBXBuildFile; fileRef = 305DDFF62C0DCFDE00E1CA6F /* TextStrokeMaskView.m */; };
 		305DE04A2C0DD89C00E1CA6F /* backgroundImageName.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 305DE0492C0DD89C00E1CA6F /* backgroundImageName.jpg */; };
+		30C6D7FF2C3EBF8A00338C1F /* 3.png in Resources */ = {isa = PBXBuildFile; fileRef = 30C6D7FE2C3EBF8A00338C1F /* 3.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +50,7 @@
 		305DDFF52C0DCFDE00E1CA6F /* TextStrokeMaskView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextStrokeMaskView.h; sourceTree = "<group>"; };
 		305DDFF62C0DCFDE00E1CA6F /* TextStrokeMaskView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TextStrokeMaskView.m; sourceTree = "<group>"; };
 		305DE0492C0DD89C00E1CA6F /* backgroundImageName.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = backgroundImageName.jpg; sourceTree = "<group>"; };
+		30C6D7FE2C3EBF8A00338C1F /* 3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 3.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,6 +97,7 @@
 				300774E82C2C08F900168E1C /* UIView+Image.m */,
 				305DDFF52C0DCFDE00E1CA6F /* TextStrokeMaskView.h */,
 				305DDFF62C0DCFDE00E1CA6F /* TextStrokeMaskView.m */,
+				30C6D7FE2C3EBF8A00338C1F /* 3.png */,
 				305DE0492C0DD89C00E1CA6F /* backgroundImageName.jpg */,
 				305DDFA52C0D6DB700E1CA6F /* Komet Pro Heavy Italic.otf */,
 				300774ED2C2C255400168E1C /* gradientImage.png */,
@@ -168,6 +171,7 @@
 				3028AE272C09E0C0007EE3FB /* LaunchScreen.storyboard in Resources */,
 				3028AE372C09E4C9007EE3FB /* sand_particle@3x.png in Resources */,
 				3028AE242C09E0C0007EE3FB /* Assets.xcassets in Resources */,
+				30C6D7FF2C3EBF8A00338C1F /* 3.png in Resources */,
 				300774EE2C2C255400168E1C /* gradientImage.png in Resources */,
 				3028AE222C09E0BF007EE3FB /* Main.storyboard in Resources */,
 				305DE04A2C0DD89C00E1CA6F /* backgroundImageName.jpg in Resources */,

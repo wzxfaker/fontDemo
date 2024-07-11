@@ -7,6 +7,7 @@
 
 #import "ParticleTextView.h"
 #import <CoreText/CoreText.h>
+#import <CoreGraphics/CoreGraphics.h>
 
 @implementation ParticleTextView
 
@@ -16,49 +17,68 @@
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextClearRect(context, rect);
     
-    if (self.text && self.font) {
-        NSDictionary *attributes = @{NSFontAttributeName: self.font,
-                                     NSForegroundColorAttributeName: [UIColor clearColor]};
-        
-        // 获取文本路径
-        CGMutablePathRef textPath = CGPathCreateMutable();
-        NSAttributedString *attributedText = [[NSAttributedString alloc] initWithString:self.text attributes:attributes];
-        CTLineRef line = CTLineCreateWithAttributedString((CFAttributedStringRef)attributedText);
-        CFArrayRef runArray = CTLineGetGlyphRuns(line);
-        
-        for (CFIndex runIndex = 0; runIndex < CFArrayGetCount(runArray); runIndex++) {
-            CTRunRef run = (CTRunRef)CFArrayGetValueAtIndex(runArray, runIndex);
-            CFDictionaryRef attributes = CTRunGetAttributes(run);
-            CTFontRef runFont = CFDictionaryGetValue(attributes, kCTFontAttributeName);
-            
-            for (CFIndex glyphIndex = 0; glyphIndex < CTRunGetGlyphCount(run); glyphIndex++) {
-                CGGlyph glyph;
-                CGPoint position;
-                CTRunGetGlyphs(run, CFRangeMake(glyphIndex, 1), &glyph);
-                CTRunGetPositions(run, CFRangeMake(glyphIndex, 1), &position);
-                
-                CGPathRef glyphPath = CTFontCreatePathForGlyph(runFont, glyph, NULL);
-                CGAffineTransform transform = CGAffineTransformMakeTranslation(position.x, position.y);
-                transform = CGAffineTransformScale(transform, 1.0, -1.0); // 反转 Y 轴
-                CGPathAddPath(textPath, &transform, glyphPath);
-                CGPathRelease(glyphPath);
+    if (self.image) {
+        // 获取图片在视图中的绘制区域
+        CGRect imageRect = self.bounds;
+        // 绘制图片
+        CGContextSaveGState(context);
+        CGContextTranslateCTM(context, 0, imageRect.size.height);
+        CGContextScaleCTM(context, -1.0, -1.0);
+        CGContextDrawImage(context, imageRect, self.image.CGImage);
+        CGContextRestoreGState(context);
+        //根据图像的透明度通道来定义裁剪区域
+        CGContextClipToMask(context, imageRect, self.image.CGImage);
+        [self drawParticlesAlongPath:[UIBezierPath bezierPathWithRect:imageRect].CGPath inContext:context];        
+        //恢复坐标系
+        CGContextRestoreGState(context);
+    } else {
+        if (self.text && self.font) {
+            CGPathRef textPath = [self createTextPath];
+            if (textPath) {
+                [self drawParticlesAlongPath:textPath inContext:context];
+                CGPathRelease(textPath);
             }
         }
-        
-        CFRelease(line);
-        
-        // 将路径移动到视图的中心
-        CGRect boundingBox = CGPathGetBoundingBox(textPath);
-        CGAffineTransform translation = CGAffineTransformMakeTranslation((CGRectGetWidth(rect) - CGRectGetWidth(boundingBox)) / 2.0,
-                                                                         (CGRectGetHeight(rect) + CGRectGetHeight(boundingBox)) / 2.0);
-        CGPathRef translatedPath = CGPathCreateCopyByTransformingPath(textPath, &translation);
-        CGPathRelease(textPath);
-
-        // 绘制粒子效果
-        [self drawParticlesAlongPath:translatedPath inContext:UIGraphicsGetCurrentContext()];
-        
-        CGPathRelease(translatedPath);
     }
+}
+
+- (CGPathRef)createTextPath {
+    NSDictionary *attributes = @{NSFontAttributeName: self.font,
+                                 NSForegroundColorAttributeName: [UIColor clearColor]};
+    
+    CGMutablePathRef textPath = CGPathCreateMutable();
+    NSAttributedString *attributedText = [[NSAttributedString alloc] initWithString:self.text attributes:attributes];
+    CTLineRef line = CTLineCreateWithAttributedString((CFAttributedStringRef)attributedText);
+    CFArrayRef runArray = CTLineGetGlyphRuns(line);
+    
+    for (CFIndex runIndex = 0; runIndex < CFArrayGetCount(runArray); runIndex++) {
+        CTRunRef run = (CTRunRef)CFArrayGetValueAtIndex(runArray, runIndex);
+        CFDictionaryRef attributes = CTRunGetAttributes(run);
+        CTFontRef runFont = CFDictionaryGetValue(attributes, kCTFontAttributeName);
+        
+        for (CFIndex glyphIndex = 0; glyphIndex < CTRunGetGlyphCount(run); glyphIndex++) {
+            CGGlyph glyph;
+            CGPoint position;
+            CTRunGetGlyphs(run, CFRangeMake(glyphIndex, 1), &glyph);
+            CTRunGetPositions(run, CFRangeMake(glyphIndex, 1), &position);
+            
+            CGPathRef glyphPath = CTFontCreatePathForGlyph(runFont, glyph, NULL);
+            CGAffineTransform transform = CGAffineTransformMakeTranslation(position.x, position.y);
+            transform = CGAffineTransformScale(transform, 1.0, -1.0); // Flip Y axis
+            CGPathAddPath(textPath, &transform, glyphPath);
+            CGPathRelease(glyphPath);
+        }
+    }
+    
+    CFRelease(line);
+    // Center the path in the view
+    CGRect boundingBox = CGPathGetBoundingBox(textPath);
+    CGAffineTransform translation = CGAffineTransformMakeTranslation((CGRectGetWidth(self.bounds) - CGRectGetWidth(boundingBox)) / 2.0,
+                                                                     (CGRectGetHeight(self.bounds) + CGRectGetHeight(boundingBox)) / 2.0);
+    CGPathRef translatedPath = CGPathCreateCopyByTransformingPath(textPath, &translation);
+    CGPathRelease(textPath);
+    
+    return translatedPath;
 }
 
 - (void)drawParticlesAlongPath:(CGPathRef)path inContext:(CGContextRef)context {
@@ -85,6 +105,7 @@
     CGContextRestoreGState(context);
 }
 
+
 - (void)setText:(NSString *)text {
     _text = text;
     [self setNeedsDisplay];
@@ -102,6 +123,11 @@
 
 - (void)setParticleSize:(CGFloat)particleSize {
     _particleSize = particleSize;
+    [self setNeedsDisplay];
+}
+
+- (void)setImage:(UIImage *)image {
+    _image = image;
     [self setNeedsDisplay];
 }
 
