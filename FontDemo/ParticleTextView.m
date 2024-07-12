@@ -17,21 +17,22 @@
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextClearRect(context, rect);
     
-    if (self.image) {
-        // 获取图片在视图中的绘制区域
-        CGRect imageRect = self.bounds;
-        // 绘制图片
-        CGContextSaveGState(context);
-        CGContextTranslateCTM(context, 0, imageRect.size.height);
-        CGContextScaleCTM(context, -1.0, -1.0);
-        CGContextDrawImage(context, imageRect, self.image.CGImage);
-        CGContextRestoreGState(context);
-        //根据图像的透明度通道来定义裁剪区域
-        CGContextClipToMask(context, imageRect, self.image.CGImage);
-        [self drawParticlesAlongPath:[UIBezierPath bezierPathWithRect:imageRect].CGPath inContext:context];        
-        //恢复坐标系
-        CGContextRestoreGState(context);
-    } else {
+    if (self.type == PreviewTypeImage) {
+        if (self.image) {
+            CGRect imageRect = self.bounds;
+            CGContextSaveGState(context);
+            // 把原点移到左下角，因为Core Graphic默认原点在左上角
+            CGContextTranslateCTM(context, 0, imageRect.size.height);
+            // 在y轴上翻转坐标系，是Y轴向上增长，这样可以正确绘制出图像
+            CGContextScaleCTM(context, 1.0, -1.0);
+            // 注释掉，不绘制原图
+    //        CGContextDrawImage(context, imageRect, self.image.CGImage);
+            //根据图像的透明度通道来定义裁剪区域
+            CGContextClipToMask(context, imageRect, self.image.CGImage);
+            [self drawParticlesAlongPath:[UIBezierPath bezierPathWithRect:imageRect].CGPath inContext:context];
+            CGContextRestoreGState(context);
+        }
+    } else if (self.type == PreviewTypeText) {
         if (self.text && self.font) {
             CGPathRef textPath = [self createTextPath];
             if (textPath) {
@@ -71,7 +72,6 @@
     }
     
     CFRelease(line);
-    // Center the path in the view
     CGRect boundingBox = CGPathGetBoundingBox(textPath);
     CGAffineTransform translation = CGAffineTransformMakeTranslation((CGRectGetWidth(self.bounds) - CGRectGetWidth(boundingBox)) / 2.0,
                                                                      (CGRectGetHeight(self.bounds) + CGRectGetHeight(boundingBox)) / 2.0);
@@ -101,10 +101,8 @@
             }
         }
     }
-    
     CGContextRestoreGState(context);
 }
-
 
 - (void)setText:(NSString *)text {
     _text = text;

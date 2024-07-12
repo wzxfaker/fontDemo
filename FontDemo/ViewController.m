@@ -45,14 +45,12 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-//    self.view.backgroundColor = [UIColor blueColor];
-    
-    ParticleTextView *particleTextView = [[ParticleTextView alloc] initWithFrame:CGRectMake(0, 100, self.view.frame.size.width, 300)];
+    ParticleTextView *particleTextView = [[ParticleTextView alloc] initWithFrame:CGRectMake((self.view.bounds.size.width-300)*0.5, 100, 300, 300)];
+    particleTextView.type = PreviewTypeText;
     particleTextView.image = [UIImage imageNamed:@"3"];
     particleTextView.text = @"你好";
     particleTextView.font = [UIFont systemFontOfSize:150 weight:UIFontWeightBold];
     particleTextView.particleColor = [UIColor redColor];
-    particleTextView.backgroundColor = [UIColor yellowColor];
     particleTextView.backgroundColor = [UIColor clearColor];
     self.particleTextView = particleTextView;
     [self.view addSubview:particleTextView];
@@ -70,7 +68,7 @@
     
     //获取截图展示的imageView
     self.imageView = [[UIImageView alloc] init];
-    self.imageView.frame = label.frame;
+    self.imageView.frame = CGRectMake((self.view.bounds.size.width-200)*0.5, 430, 200, 200);
     [self.view addSubview:self.imageView];
     
     self.colorSliderView = [[ColorSliderView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.imageView.frame), self.view.frame.size.width, 30)];
