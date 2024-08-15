@@ -81,6 +81,19 @@
     };
     [self.view addSubview:self.colorSliderView];
 
+    //获取字体
+    UIFont *font = [UIFont systemFontOfSize:[UIFont systemFontSize]];
+    NSMutableArray *familyNameArray = [[NSMutableArray alloc] init];
+    NSArray* familyNamesAll = [UIFont familyNames];
+    for (id family in familyNamesAll) {
+        NSLog(@"fontFamily--%@", family);
+        NSArray* fonts = [UIFont fontNamesForFamilyName:family];
+        for (id font in fonts)
+        {
+            [familyNameArray addObject:font];
+        }
+        NSLog(@"   %@", fonts);
+    }
 }
 
 
